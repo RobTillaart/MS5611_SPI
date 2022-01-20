@@ -55,8 +55,8 @@ void setup()
 
   Serial.println();
   Serial.println(__FILE__);
-  Serial.print("MS5611_LIB_VERSION: ");
-  Serial.println(MS5611_LIB_VERSION);
+  Serial.print("MS5611_SPI_LIB_VERSION: ");
+  Serial.println(MS5611_SPI_LIB_VERSION);
 
   if (MS5611.begin() == true)
   {
