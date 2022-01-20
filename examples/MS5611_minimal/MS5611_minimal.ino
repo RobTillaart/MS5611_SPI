@@ -46,7 +46,6 @@
 MS5611_SPI MS5611(5);                // ESP32 HW SPI (VSPI)
 
 
-
 void setup()
 {
   Serial.begin(115200);
@@ -57,8 +56,8 @@ void setup()
   Serial.print("MS5611_SPI_LIB_VERSION: ");
   Serial.println(MS5611_SPI_LIB_VERSION);
 
-  MS5611.selectVSPI();
-  
+  // MS5611.selectVSPI();
+
   if (MS5611.begin() == true)
   {
     Serial.println("MS5611 found.");
