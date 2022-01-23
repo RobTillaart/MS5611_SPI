@@ -57,7 +57,7 @@ void setup()
   Serial.println(MS5611_SPI_LIB_VERSION);
 
   // ESP32 need this
-  MS5611.selectVSPI();
+  // MS5611.selectVSPI();
 
   if (MS5611.begin() == true)
   {
