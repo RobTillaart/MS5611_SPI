@@ -64,7 +64,8 @@ The high resolution is made possible by oversampling many times.
 
 This library only implements the SPI interface.
 
-Based upon the 0.3.6 version of the I2C library, see - https://github.com/RobTillaart/MS5611
+Based upon the 0.3.6 version of the I2C library, 
+see - https://github.com/RobTillaart/MS5611
 
 
 #### Breakout GY-63
@@ -102,7 +103,7 @@ For temperature conversions see - https://github.com/RobTillaart/Temperature
 
 ### 0.1.0 initial release
 
-Based upon 0.3.6 of the I2C library.
+Based upon 0.3.6 of the I2C MS5611 library.
 
 
 ## Interface
@@ -162,7 +163,16 @@ Default the offset is set to 0.
 
 - **int getLastResult()** checks last I2C communication. Replace with more informative error handling?
 - **uint32_t lastRead()** last time when **read()** was called in milliseconds since startup.
+- **uint32_t getDeviceID()** returns the hashed values of the calibration PROM. 
+As these calibration are set in the factory and differ (enough) per sensor these can serve as an unique deviceID.
 
+Having a device-ID can be used in many ways:
+- use known offsets for each sensor automatically, 
+- work as an identification of that specific copy of the project (customer specific tracking).
+- ID in a mesh network
+- etc.
+
+Note: this is not an official ID from the device / datasheet, it is made up from calibration data.
 
 #### SPI functions
 
@@ -193,4 +203,5 @@ See examples
 
 - follow I2C library.
 - elaborate documentation.
+- investigate internal heating with SPI.
 - more testing
