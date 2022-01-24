@@ -88,12 +88,11 @@ bool MS5611_SPI::begin()
     digitalWrite(_clock,   LOW);
   }
 
-  reset();
-  return true;
+  return reset();
 }
 
 
-void MS5611_SPI::reset()
+bool MS5611_SPI::reset()
 {
   command(MS5611_CMD_RESET);
   uint32_t start = micros();
@@ -113,6 +112,7 @@ void MS5611_SPI::reset()
   C[5] = 256;             // Tref     = C[5] * 2^8
   C[6] = 1.1920928955E-7; // TEMPSENS = C[6] / 2^23
   // read factory calibrations from EEPROM.
+  bool ROM_OK = true;
   for (uint8_t reg = 0; reg < 7; reg++)
   {
     // used indices match datasheet.
@@ -120,11 +120,16 @@ void MS5611_SPI::reset()
     // C[7] == CRC - skipped.
     uint16_t tmp = readProm(reg);
     C[reg] *= tmp;
-    // hash is a simple SHIFT XOR merge of PROM data
+    // _deviceID is a simple SHIFT XOR merge of PROM data
     _deviceID <<= 4;
     _deviceID ^= tmp;
     // Serial.println(readProm(reg));
+    if (reg > 0)
+    {
+      ROM_OK = ROM_OK && (tmp != 0);
+    }
   }
+  return ROM_OK;
 }
 
 
@@ -142,8 +147,8 @@ int MS5611_SPI::read(uint8_t bits)
   //Serial.println(_D2);
 
   //  TEST VALUES - comment lines above
-  // uint32_t D1 = 9085466;
-  // uint32_t D2 = 8569150;
+  // uint32_t _D1 = 9085466;
+  // uint32_t _D2 = 8569150;
 
   // TEMP & PRESS MATH - PAGE 7/20
   float dT = _D2 - C[5];

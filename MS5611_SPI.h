@@ -55,7 +55,8 @@ public:
   bool     begin();
 
   // reset command + get constants
-  void     reset();
+  // returns false if ROM constants == 0;
+  bool     reset();
 
   // the actual reading of the sensor;
   // returns MS5611_READ_OK upon success
