@@ -35,6 +35,7 @@ MS5611_SPI::MS5611_SPI(uint8_t select, uint8_t dataOut, uint8_t dataIn, uint8_t 
   _deviceID          = 0;
   _pressureOffset    = 0;
   _temperatureOffset = 0;
+  _compensation      = true;
 
   // SPI
   _select   = select;
@@ -143,8 +144,8 @@ int MS5611_SPI::read(uint8_t bits)
   convert(MS5611_CMD_CONVERT_D2, bits);
   uint32_t _D2 = readADC();
 
-  //Serial.println(_D1);
-  //Serial.println(_D2);
+  // Serial.println(_D1);
+  // Serial.println(_D2);
 
   //  TEST VALUES - comment lines above
   // uint32_t _D1 = 9085466;
@@ -157,27 +158,30 @@ int MS5611_SPI::read(uint8_t bits)
   float offset =  C[2] + dT * C[4];
   float sens = C[1] + dT * C[3];
 
-  // SECOND ORDER COMPENSATION - PAGE 8/20
-  // COMMENT OUT < 2000 CORRECTION IF NOT NEEDED
-  // NOTE TEMPERATURE IS IN 0.01 C
-  if (_temperature < 2000)
+  if (_compensation)
   {
-    float T2 = dT * dT * 4.6566128731E-10;
-    float t = (_temperature - 2000) * (_temperature - 2000);
-    float offset2 = 2.5 * t;
-    float sens2 = 1.25 * t;
-    // COMMENT OUT < -1500 CORRECTION IF NOT NEEDED
-    if (_temperature < -1500)
+    // SECOND ORDER COMPENSATION - PAGE 8/20
+    // COMMENT OUT < 2000 CORRECTION IF NOT NEEDED
+    // NOTE TEMPERATURE IS IN 0.01 C
+    if (_compensation && _temperature < 2000)
     {
-      t = (_temperature + 1500) * (_temperature + 1500);
-      offset2 += 7 * t;
-      sens2 += 5.5 * t;
+      float T2 = dT * dT * 4.6566128731E-10;
+      float t = (_temperature - 2000) * (_temperature - 2000);
+      float offset2 = 2.5 * t;
+      float sens2 = 1.25 * t;
+      // COMMENT OUT < -1500 CORRECTION IF NOT NEEDED
+      if (_temperature < -1500)
+      {
+        t = (_temperature + 1500) * (_temperature + 1500);
+        offset2 += 7 * t;
+        sens2 += 5.5 * t;
+      }
+      _temperature -= T2;
+      offset -= offset2;
+      sens -= sens2;
     }
-    _temperature -= T2;
-    offset -= offset2;
-    sens -= sens2;
+    // END SECOND ORDER COMPENSATION
   }
-  // END SECOND ORDER COMPENSATION
 
   _pressure = (_D1 * sens * 4.76837158205E-7 - offset) * 3.051757813E-5;
 
@@ -262,7 +266,6 @@ void MS5611_SPI::convert(const uint8_t addr, uint8_t bits)
 }
 
 
-// OK...
 uint16_t MS5611_SPI::readProm(uint8_t reg)
 {
   // last EEPROM register is CRC - Page 13 datasheet.

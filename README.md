@@ -103,7 +103,7 @@ For temperature conversions see - https://github.com/RobTillaart/Temperature
 
 ### 0.1.0 initial release
 
-Based upon 0.3.6 of the I2C MS5611 library.
+Based upon 0.3.8 of the I2C MS5611 library.
 
 
 ## Interface
@@ -163,6 +163,10 @@ Default the offset is set to 0.
 
 - **int getLastResult()** checks last I2C communication. Replace with more informative error handling?
 - **uint32_t lastRead()** last time when **read()** was called in milliseconds since startup.
+
+
+#### DeviceID
+
 - **uint32_t getDeviceID()** returns the hashed values of the calibration PROM. 
 As these calibration are set in the factory and differ (enough) per sensor these can serve as an unique deviceID.
 
@@ -173,6 +177,15 @@ Having a device-ID can be used in many ways:
 - etc.
 
 Note: this is not an official ID from the device / datasheet, it is made up from calibration data.
+
+
+#### 2nd order pressure compensation
+
+- **setCompensation(bool flag = true)** to enable/desiable the 2nd order compensation. 
+The default = true. 
+Disabling the compensation will be slightly faster but you loose precision.
+- **getCompensation()** returns flag set above.
+
 
 #### SPI functions
 
@@ -202,6 +215,4 @@ See examples
 ## Future
 
 - follow I2C library.
-- elaborate documentation.
 - investigate internal heating with SPI.
-- more testing

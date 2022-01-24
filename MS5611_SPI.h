@@ -90,6 +90,9 @@ public:
 
   uint32_t getDeviceID() const     { return _deviceID; };
 
+  void     setCompensation(bool flag = true; } { _compensation = flag; };
+  bool     getCompensation() { return _compensation; };
+
   // develop functions.
   /*
   void     setAddress(uint8_t address) { _address = address; };  // RANGE CHECK
@@ -133,6 +136,7 @@ private:
   float    C[7];
   uint32_t _lastRead;
   uint32_t _deviceID;
+  bool     _compensation;
 
   uint8_t  _select;
   uint8_t  _dataIn;
