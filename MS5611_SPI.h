@@ -55,7 +55,8 @@ public:
   bool     begin();
 
   // reset command + get constants
-  void     reset();
+  // returns false if ROM constants == 0;
+  bool     reset();
 
   // the actual reading of the sensor;
   // returns MS5611_READ_OK upon success
@@ -87,10 +88,16 @@ public:
   // last time in millis() when the sensor has been read.
   uint32_t lastRead() const        { return _lastRead; };
 
+  uint32_t getDeviceID() const     { return _deviceID; };
+
+  void     setCompensation(bool flag = true) { _compensation = flag; };
+  bool     getCompensation() { return _compensation; };
+
   // develop functions.
   /*
-  void     setAddress(uint8_t address) { _address = address; };  // RANGE CHECK !!!
+  void     setAddress(uint8_t address) { _address = address; };  // RANGE CHECK
   uint8_t  getAddress() const          { return _address; };
+  uint8_t  detectAddress() { todo };  // works with only one on the bus?
   */
 
 
@@ -128,6 +135,8 @@ private:
   int      _result;
   float    C[7];
   uint32_t _lastRead;
+  uint32_t _deviceID;
+  bool     _compensation;
 
   uint8_t  _select;
   uint8_t  _dataIn;

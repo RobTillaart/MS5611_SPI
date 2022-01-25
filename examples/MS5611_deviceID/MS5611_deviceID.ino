@@ -1,5 +1,5 @@
 //
-//    FILE: MS5611_minimal.ino
+//    FILE: MS5611_deviceID.ino
 //  AUTHOR: Rob Tillaart
 // PURPOSE: demo application
 //     URL: https://github.com/RobTillaart/MS5611_SPI
@@ -39,25 +39,24 @@
 
 // MS5611_SPI MS5611(10, 11, 12, 13);   // UNO SW SPI (5V problem?
 // MS5611_SPI MS5611(10);               // UNO  HW SPI
-//
-// MS5611_SPI MS5611( 5, 23, 19, 18);   // ESP32 SW SPI
-// MS5611_SPI MS5611(15, 13, 12, 14);   // ESP32 SW SPI
-// MS5611_SPI MS5611(15);                // ESP32 HW SPI (HSPI)
-MS5611_SPI MS5611(5);                // ESP32 HW SPI (VSPI)
+MS5611_SPI MS5611( 5, 23, 19, 18);   // ESP32 SW SPI
+// MS5611_SPI MS5611(5);                // ESP32 HW SPI
+
+
+uint32_t start, stop;
 
 
 void setup()
 {
   Serial.begin(115200);
-  while(!Serial);
+  while (!Serial);
+
+  // pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.println();
   Serial.println(__FILE__);
   Serial.print("MS5611_SPI_LIB_VERSION: ");
   Serial.println(MS5611_SPI_LIB_VERSION);
-
-  // ESP32 need this
-  // MS5611.selectVSPI();
 
   if (MS5611.begin() == true)
   {
@@ -67,26 +66,20 @@ void setup()
   else
   {
     Serial.println("MS5611 not found. halt.");
-    while (1);
+    while (1)
+    {
+      // digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      // digitalWrite(LED_BUILTIN, LOW);
+      delay(1000);
+    }
   }
-  Serial.println();
+  Serial.println("done");
 }
 
 
 void loop()
 {
-  // MS5611.reset();
-  uint32_t start = micros();
-  MS5611.read();           // note no error checking => "optimistic".
-  uint32_t stop = micros();
-  Serial.print("T:\t");
-  Serial.print(MS5611.getTemperature(), 2);
-  Serial.print("\tP:\t");
-  Serial.print(MS5611.getPressure(), 2);
-  Serial.print("\tt:\t");
-  Serial.print(stop - start);
-  Serial.println();
-  delay(2000);
 }
 
 

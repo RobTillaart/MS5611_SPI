@@ -23,6 +23,8 @@ getTemperatureOffset	KEYWORD2
 setPressureOffset	KEYWORD2
 getPressureOffset	KEYWORD2
 
+getDeviceID	KEYWORD2
+
 
 # Instances (KEYWORD2)
 

@@ -32,8 +32,10 @@ MS5611_SPI::MS5611_SPI(uint8_t select, uint8_t dataOut, uint8_t dataIn, uint8_t 
   _pressure          = MS5611_NOT_READ;
   _result            = MS5611_NOT_READ;
   _lastRead          = 0;
+  _deviceID          = 0;
   _pressureOffset    = 0;
   _temperatureOffset = 0;
+  _compensation      = true;
 
   // SPI
   _select   = select;
@@ -87,12 +89,11 @@ bool MS5611_SPI::begin()
     digitalWrite(_clock,   LOW);
   }
 
-  reset();
-  return true;
+  return reset();
 }
 
 
-void MS5611_SPI::reset()
+bool MS5611_SPI::reset()
 {
   command(MS5611_CMD_RESET);
   uint32_t start = micros();
@@ -105,22 +106,31 @@ void MS5611_SPI::reset()
   // constants that were multiplied in read()
   // do this once and you save CPU cycles
   C[0] = 1;
-  C[1] = 32768L;          // SENSt1 = C[1] * 2^15
-  C[2] = 65536L;          // OFFt1 = C[2] * 2^16
-  C[3] = 3.90625E-3;      // TCS = C[3] / 2^6
-  C[4] = 7.8125E-3;       // TCO = C[4] / 2^7
-  C[5] = 256;             // Tref = C[5] * 2^8
+  C[1] = 32768L;          // SENSt1   = C[1] * 2^15
+  C[2] = 65536L;          // OFFt1    = C[2] * 2^16
+  C[3] = 3.90625E-3;      // TCS      = C[3] / 2^6
+  C[4] = 7.8125E-3;       // TCO      = C[4] / 2^7
+  C[5] = 256;             // Tref     = C[5] * 2^8
   C[6] = 1.1920928955E-7; // TEMPSENS = C[6] / 2^23
   // read factory calibrations from EEPROM.
+  bool ROM_OK = true;
   for (uint8_t reg = 0; reg < 7; reg++)
   {
     // used indices match datasheet.
     // C[0] == manufacturer - read but not used;
     // C[7] == CRC - skipped.
-    float tmp = readProm(reg);
+    uint16_t tmp = readProm(reg);
     C[reg] *= tmp;
-    // Serial.println(tmp);
+    // _deviceID is a simple SHIFT XOR merge of PROM data
+    _deviceID <<= 4;
+    _deviceID ^= tmp;
+    // Serial.println(readProm(reg));
+    if (reg > 0)
+    {
+      ROM_OK = ROM_OK && (tmp != 0);
+    }
   }
+  return ROM_OK;
 }
 
 
@@ -134,12 +144,12 @@ int MS5611_SPI::read(uint8_t bits)
   convert(MS5611_CMD_CONVERT_D2, bits);
   uint32_t _D2 = readADC();
 
-  //Serial.println(_D1);
-  //Serial.println(_D2);
+  // Serial.println(_D1);
+  // Serial.println(_D2);
 
   //  TEST VALUES - comment lines above
-  // uint32_t D1 = 9085466;
-  // uint32_t D2 = 8569150;
+  // uint32_t _D1 = 9085466;
+  // uint32_t _D2 = 8569150;
 
   // TEMP & PRESS MATH - PAGE 7/20
   float dT = _D2 - C[5];
@@ -148,27 +158,30 @@ int MS5611_SPI::read(uint8_t bits)
   float offset =  C[2] + dT * C[4];
   float sens = C[1] + dT * C[3];
 
-  // SECOND ORDER COMPENSATION - PAGE 8/20
-  // COMMENT OUT < 2000 CORRECTION IF NOT NEEDED
-  // NOTE TEMPERATURE IS IN 0.01 C
-  if (_temperature < 2000)
+  if (_compensation)
   {
-    float T2 = dT * dT * 4.6566128731E-10;
-    float t = (_temperature - 2000) * (_temperature - 2000);
-    float offset2 = 2.5 * t;
-    float sens2 = 1.25 * t;
-    // COMMENT OUT < -1500 CORRECTION IF NOT NEEDED
-    if (_temperature < -1500)
+    // SECOND ORDER COMPENSATION - PAGE 8/20
+    // COMMENT OUT < 2000 CORRECTION IF NOT NEEDED
+    // NOTE TEMPERATURE IS IN 0.01 C
+    if (_compensation && _temperature < 2000)
     {
-      t = (_temperature + 1500) * (_temperature + 1500);
-      offset2 += 7 * t;
-      sens2 += 5.5 * t;
+      float T2 = dT * dT * 4.6566128731E-10;
+      float t = (_temperature - 2000) * (_temperature - 2000);
+      float offset2 = 2.5 * t;
+      float sens2 = 1.25 * t;
+      // COMMENT OUT < -1500 CORRECTION IF NOT NEEDED
+      if (_temperature < -1500)
+      {
+        t = (_temperature + 1500) * (_temperature + 1500);
+        offset2 += 7 * t;
+        sens2 += 5.5 * t;
+      }
+      _temperature -= T2;
+      offset -= offset2;
+      sens -= sens2;
     }
-    _temperature -= T2;
-    offset -= offset2;
-    sens -= sens2;
+    // END SECOND ORDER COMPENSATION
   }
-  // END SECOND ORDER COMPENSATION
 
   _pressure = (_D1 * sens * 4.76837158205E-7 - offset) * 3.051757813E-5;
 
@@ -208,10 +221,16 @@ void MS5611_SPI::setSPIspeed(uint32_t speed)
 void MS5611_SPI::setGPIOpins(uint8_t clk, uint8_t miso, uint8_t mosi, uint8_t select)
 {
   _clock   = clk;
+  _dataIn  = miso;
   _dataOut = mosi;
   _select  = select;
-  pinMode(_select, OUTPUT);
-  digitalWrite(_select, HIGH);
+  pinMode(_clock,   OUTPUT);
+  pinMode(_dataIn,  INPUT);
+  pinMode(_dataOut, OUTPUT);
+  pinMode(_select,  OUTPUT);
+  digitalWrite(_clock,   HIGH);
+  digitalWrite(_dataOut, LOW);
+  digitalWrite(_select,  HIGH);
 
   mySPI->end();                 //  disable SPI and restart
   mySPI->begin(clk, miso, mosi, select);
@@ -247,7 +266,6 @@ void MS5611_SPI::convert(const uint8_t addr, uint8_t bits)
 }
 
 
-// OK...
 uint16_t MS5611_SPI::readProm(uint8_t reg)
 {
   // last EEPROM register is CRC - Page 13 datasheet.
