@@ -17,7 +17,6 @@ compile:
   # Choosing to run compilation tests on 2 different Arduino platforms
   platforms:
     - uno
-    - nano33ble
     # - due
     # - zero
     # - leonardo
