@@ -81,9 +81,9 @@ bool MS5611_SPI::begin()
 
   if(_hwSPI)
   {
-    mySPI->begin();  //  FIX #6  
-    mySPI->end();
-    mySPI->begin();
+    _mySPI->begin();  //  FIX #6  
+    _mySPI->end();
+    _mySPI->begin();
     delay(1);
   }
   else
@@ -349,12 +349,12 @@ uint16_t MS5611_SPI::readProm(uint8_t reg)
   digitalWrite(_select, LOW);
   if (_hwSPI)
   {
-    mySPI->beginTransaction(_spi_settings);
-    mySPI->transfer(MS5611_CMD_READ_PROM + reg * 2);
-    value += mySPI->transfer(0x00);
+    _mySPI->beginTransaction(_spi_settings);
+    _mySPI->transfer(MS5611_CMD_READ_PROM + reg * 2);
+    value += _mySPI->transfer(0x00);
     value <<= 8;
-    value += mySPI->transfer(0x00);
-    mySPI->endTransaction();
+    value += _mySPI->transfer(0x00);
+    _mySPI->endTransaction();
   }
   else      //  Software SPI
   {
@@ -377,14 +377,14 @@ uint32_t MS5611_SPI::readADC()
   digitalWrite(_select, LOW);
   if (_hwSPI)
   {
-    mySPI->beginTransaction(_spi_settings);
-    mySPI->transfer(0x00);
-    value += mySPI->transfer(0x00);
+    _mySPI->beginTransaction(_spi_settings);
+    _mySPI->transfer(0x00);
+    value += _mySPI->transfer(0x00);
     value <<= 8;
-    value += mySPI->transfer(0x00);
+    value += _mySPI->transfer(0x00);
     value <<= 8;
-    value += mySPI->transfer(0x00);
-    mySPI->endTransaction();
+    value += _mySPI->transfer(0x00);
+    _mySPI->endTransaction();
   }
   else      //  Software SPI
   {
@@ -407,9 +407,9 @@ int MS5611_SPI::command(const uint8_t command)
   digitalWrite(_select, LOW);
   if (_hwSPI)
   {
-    mySPI->beginTransaction(_spi_settings);
-    mySPI->transfer(command);
-    mySPI->endTransaction();
+    _mySPI->beginTransaction(_spi_settings);
+    _mySPI->transfer(command);
+    _mySPI->endTransaction();
   }
   else      //  Software SPI
   {
