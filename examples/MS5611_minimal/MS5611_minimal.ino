@@ -39,13 +39,12 @@
 // MS5611_SPI MS5611(10);               // UNO  HW SPI
 //
 // MS5611_SPI MS5611( 5, 23, 19, 18);   // ESP32 SW SPI
-// MS5611_SPI MS5611(15, 13, 12, 14);   // ESP32 SW SPI
+MS5611_SPI MS5611(15, 13, 12, 14);   // ESP32 SW SPI
 //
 // SPIClass *mySPI = new SPIClass(HSPI);
 // MS5611_SPI MS5611(15, mySPI);        // ESP32 HW SPI (HSPI)
-
-SPIClass *mySPI = new SPIClass(VSPI);
-MS5611_SPI MS5611(5, mySPI);                // ESP32 HW SPI (VSPI)
+// SPIClass *mySPI = new SPIClass(VSPI);
+// MS5611_SPI MS5611(5, mySPI);                // ESP32 HW SPI (VSPI)
 
 
 void setup()
