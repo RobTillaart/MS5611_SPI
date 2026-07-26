@@ -24,7 +24,7 @@ const uint8_t MS5611_CMD_CONVERT_D2 = 0x50;
 //
 MS5611_SPI::MS5611_SPI(uint8_t select, __SPI_CLASS__ * mySPI)
 {
-  //  _address           = deviceAddress;  // TODO
+  //  _address           = deviceAddress;
   _samplingRate      = OSR_ULTRA_LOW;
   _temperature       = MS5611_NOT_READ;
   _pressure          = MS5611_NOT_READ;
@@ -47,7 +47,7 @@ MS5611_SPI::MS5611_SPI(uint8_t select, __SPI_CLASS__ * mySPI)
 
 MS5611_SPI::MS5611_SPI(uint8_t select, uint8_t dataOut, uint8_t dataIn, uint8_t clock)
 {
-  //  _address           = deviceAddress;  // TODO
+  //  _address           = deviceAddress;
   _samplingRate      = OSR_ULTRA_LOW;
   _temperature       = MS5611_NOT_READ;
   _pressure          = MS5611_NOT_READ;
