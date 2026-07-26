@@ -148,6 +148,11 @@ int MS5611_SPI::read(uint8_t bits)
   //  VARIABLES NAMES BASED ON DATASHEET
   //  ALL MAGIC NUMBERS ARE FROM DATASHEET
 
+  //  _result starts as MS5611_NOT_READ and, unlike the I2C version, SPI has
+  //  no endTransmission() to clear it. Without this the guards below fail
+  //  on the first call and read() can never succeed.
+  _result = MS5611_READ_OK;
+
   convert(MS5611_CMD_CONVERT_D1, bits);
   if (_result) return _result;
   //  NOTE: D1 and D2 seem reserved in MBED (NANO BLE)
