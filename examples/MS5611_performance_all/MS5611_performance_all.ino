@@ -71,7 +71,7 @@ void setup()
   else
   {
     Serial.println("MS5611 not found. halt.");
-    while (1);
+    // while (1);
   }
   Serial.println();
 
@@ -136,4 +136,3 @@ void loop()
 
 
 //  -- END OF FILE --
-

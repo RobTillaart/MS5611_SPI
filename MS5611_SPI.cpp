@@ -1,7 +1,7 @@
 //
 //    FILE: MS5611_SPI.cpp
 //  AUTHOR: Rob Tillaart
-// VERSION: 0.4.2
+// VERSION: 0.4.3
 //    DATE: 2022-01-18
 // PURPOSE: Arduino library for MS5611 (SPI) temperature and pressure sensor
 //     URL: https://github.com/RobTillaart/MS5611_SPI
@@ -11,11 +11,11 @@
 
 
 // datasheet page 10
-#define MS5611_CMD_READ_ADC       0x00
-#define MS5611_CMD_READ_PROM      0xA0
-#define MS5611_CMD_RESET          0x1E
-#define MS5611_CMD_CONVERT_D1     0x40
-#define MS5611_CMD_CONVERT_D2     0x50
+const uint8_t MS5611_CMD_READ_ADC   = 0x00;
+const uint8_t MS5611_CMD_READ_PROM  = 0xA0;
+const uint8_t MS5611_CMD_RESET      = 0x1E;
+const uint8_t MS5611_CMD_CONVERT_D1 = 0x40;
+const uint8_t MS5611_CMD_CONVERT_D2 = 0x50;
 
 
 /////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ bool MS5611_SPI::begin()
 
   if(_hwSPI)
   {
-    //  _mySPI->begin();  //  FIX #6  
+    //  _mySPI->begin();  //  FIX #6
     //  _mySPI->end();
     //  _mySPI->begin();
     //  delay(1);
@@ -423,6 +423,14 @@ uint16_t MS5611_SPI::readProm(uint8_t reg)
     value += swSPI_transfer(0x00);
   }
   digitalWrite(_select, HIGH);
+  //  Serial.println(value, HEX);
+
+  if ((value == 0) || (value == 0xFFFF))
+  {
+    _result = MS5611_ERROR_PROM;
+    return value;
+  }
+  _result = MS5611_READ_OK;
   return value;
 }
 
@@ -456,6 +464,13 @@ uint32_t MS5611_SPI::readADC()
   }
   digitalWrite(_select, HIGH);
   //  Serial.println(value, HEX);
+
+  if ((value == 0) || (value == 0xFFFF))
+  {
+    _result = MS5611_ERROR_ADC;
+    return value;
+  }
+  _result = MS5611_READ_OK;
   return value;
 }
 
@@ -531,7 +546,6 @@ void MS5611_SPI::initConstants(uint8_t mathMode)
 //
 //  DERIVED CLASSES
 //
-//  TODO ?
 
 
 //  -- END OF FILE --
